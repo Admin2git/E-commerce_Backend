@@ -93,7 +93,7 @@ async function readAllProduct(categoryId) {
   }
 }
 
-app.get("/products/:categoryId", async (req, res) => {
+app.get("/products/category/:categoryId", async (req, res) => {
   try {
     const products = await readAllProduct(req.params.categoryId);
     if (products.length != 0) {
@@ -103,6 +103,28 @@ app.get("/products/:categoryId", async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to fatch categories." });
+  }
+});
+
+async function getProductById(productId) {
+  try {
+    const product = await Product.findById(productId);
+    return product;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+app.get("/products/:productId", async (req, res) => {
+  try {
+    const product = await getProductById(req.params.productId);
+    if (product) {
+      res.status(200).json(product); // Return products related to the category
+    } else {
+      res.status(404).json({ error: "No product found." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fatch products." });
   }
 });
 
