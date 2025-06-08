@@ -15,6 +15,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 initializeDatabase();
 
+app.get("/", (req, res) => {
+  res.json({ message: "this is e-commerce api" });
+});
+
 async function createCategory(newCategory) {
   try {
     const categorie = new Category(newCategory);
