@@ -6,6 +6,9 @@ const cors = require("cors");
 const Category = require("./models/categories.model");
 const { initializeDatabase } = require("./db/db.connect");
 const Product = require("./models/product.model");
+const Address = require("./models/address");
+const User = require("./models/User.model");
+const Order = require("./models/Order.model");
 const corsOptions = {
   origin: "*",
   credentials: true,
@@ -130,6 +133,104 @@ app.get("/products/:productId", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to fatch products." });
   }
+});
+
+//add user
+
+app.post("/user", async (req, res) => {
+  const user = new User(req.body);
+  const savedUser = await user.save();
+  if (savedUser) {
+    res.status(201).json(savedUser);
+  }
+});
+
+// Dummy user middleware (simulate logged-in user)
+app.use((req, res, next) => {
+  req.user = { id: "6849315540bff452c746b05e" }; // hardcoded user ID for testing
+  next();
+});
+
+// add new address
+
+async function addNewAddress(newAddress, userId) {
+  try {
+    const address = new Address({ ...newAddress, userId });
+    const savedAddress = await address.save();
+    return savedAddress;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+app.post("/user/addresses", async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const savedAddress = await addNewAddress(req.body, userId);
+    if (savedAddress) {
+      res.status(201).json(savedAddress);
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fatch address." });
+  }
+});
+
+//update address by id
+
+async function updateAddressById(updateById, dataToUpdate) {
+  try {
+    const updatedAddress = await Address.findByIdAndUpdate(
+      updateById,
+      dataToUpdate,
+      { new: true }
+    );
+    return updatedAddress;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+app.post("/user/addresses/:id", async (req, res) => {
+  try {
+    const updatedAddress = await updateAddressById(req.params.id, req.body);
+    if (updatedAddress) {
+      res.status(201).json(updatedAddress);
+    } else {
+      res.status(404).json({ message: "address not found." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fatch address." });
+  }
+});
+
+//get address by user id
+
+app.get("/user/addresses", async (req, res) => {
+  const userId = req.user.id;
+  const addresses = await Address.find({ userId: userId });
+  res.json(addresses);
+});
+
+//delete address by id
+
+app.delete("/user/addresses/:id", async (req, res) => {
+  const deletedAddress = await Address.findByIdAndDelete(req.params.id);
+  res.json({ message: "Address deleted", deletedAddress });
+});
+
+// new order place
+
+app.post("/orders/place", async (req, res) => {
+  const userId = req.user.id;
+  const { addressId, items } = req.body;
+
+  if (!addressId || !items || items.length === 0) {
+    return res.status(400).json({ error: "Invalid order data" });
+  }
+
+  const newOrder = new Order({ userId, addressId, items });
+  await newOrder.save();
+  res.status(201).json({ message: "Order placed", orderId: newOrder._id });
 });
 
 const PORT = 3000;
