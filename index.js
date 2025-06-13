@@ -233,6 +233,31 @@ app.post("/orders/place", async (req, res) => {
   res.status(201).json({ message: "Order placed", orderId: newOrder._id });
 });
 
+async function getOrderPlace(userId) {
+  try {
+    const orders = await Order.find({ userId: userId })
+      .populate("addressId")
+      .populate("items.productId");
+    return orders;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+app.get("/order/place", async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const orders = await getOrderPlace(userId);
+    if (orders.length != 0) {
+      res.status(201).json(orders);
+    } else {
+      res.status(404).json({ message: "order not found." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fatch order place." });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
