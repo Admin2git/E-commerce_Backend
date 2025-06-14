@@ -18,6 +18,7 @@ const orderSchema = new mongoose.Schema(
         quantity: Number,
       },
     ],
+    totalPrice: { type: Number, required: true },
     status: { type: String, default: "placed" },
     placedAt: { type: Date, default: Date.now },
   },
