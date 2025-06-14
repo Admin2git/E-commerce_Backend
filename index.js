@@ -222,13 +222,13 @@ app.delete("/user/addresses/:id", async (req, res) => {
 
 app.post("/orders/place", async (req, res) => {
   const userId = req.user.id;
-  const { addressId, items } = req.body;
+  const { addressId, items, totalPrice } = req.body;
 
   if (!addressId || !items || items.length === 0) {
     return res.status(400).json({ error: "Invalid order data" });
   }
 
-  const newOrder = new Order({ userId, addressId, items });
+  const newOrder = new Order({ userId, addressId, items, totalPrice });
   await newOrder.save();
   res.status(201).json({ message: "Order placed", orderId: newOrder._id });
 });
